@@ -3,6 +3,7 @@ name = "tbank-kassa"
 version = "0.1.0"
 description = ""
 authors = ["Rostislaww <rostiki.com@mail.ru>"]
+homepage = "https://github.com/RostHarcha/tbank_kassa"
 
 [tool.poetry.dependencies]
 python = "^3.12"
