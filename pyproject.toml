@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "tbank-kassa"
-version = "0.1.0"
+version = "0.1.1"
 description = ""
 authors = ["Rostislaww <rostiki.com@mail.ru>"]
 homepage = "https://github.com/RostHarcha/tbank_kassa"
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.10"
 pydantic = "^2.10.3"
 aiohttp = "^3.11.10"
 
