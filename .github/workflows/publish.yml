@@ -44,7 +44,7 @@ jobs:
         id: git-log
         run: |
           current_tag="${GITHUB_REF#refs/tags/}"
-          previous_tag=$(git describe --tags --abbrev=0 HEAD^)
+          previous_tag=$(git describe --tags --abbrev=0 HEAD^ || echo "Initial Release")
           changes=$(git log ${previous_tag}..${current_tag} --pretty=format:"- %s (%an)")
           echo "changelog=$changes" >> $GITHUB_ENV
 
