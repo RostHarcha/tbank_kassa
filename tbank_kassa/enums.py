@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class TBankKassaEnvironment(str, Enum):
+class TBankKassaEnvironment(StrEnum):
     TEST = 'test'
     PROD = 'prod'
 

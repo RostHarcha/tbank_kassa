@@ -1,11 +1,11 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class PaymentType(str, Enum):
+class PaymentType(StrEnum):
     ONE_STAGE = 'O'
     TWO_STAGE = 'T'
 
 
-class Language(str, Enum):
+class Language(StrEnum):
     RUS = 'ru'
     ENG = 'en'
