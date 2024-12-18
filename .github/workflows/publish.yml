@@ -1,4 +1,4 @@
-name: Publish to PyPI
+name: Publish to PyPI and Create Release
 
 on:
   push:
@@ -39,3 +39,22 @@ jobs:
         env:
           POETRY_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: poetry publish --username __token__ --password "$POETRY_PASSWORD"
+
+      - name: Extract changes from Git history
+        id: git-log
+        run: |
+          current_tag="${GITHUB_REF#refs/tags/}"
+          previous_tag=$(git describe --tags --abbrev=0 HEAD^)
+          changes=$(git log ${previous_tag}..${current_tag} --pretty=format:"- %s (%an)")
+          echo "changelog=$changes" >> $GITHUB_ENV
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref_name }}
+          body: ${{ env.changelog }}
+          draft: false
+          prerelease: false
