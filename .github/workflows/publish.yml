@@ -10,7 +10,6 @@ permissions:
   issues: write
   pull-requests: write
   actions: write
-  administration: write
 
 jobs:
   publish:
