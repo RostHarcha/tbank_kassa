@@ -40,14 +40,6 @@ jobs:
           POETRY_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: poetry publish --username __token__ --password "$POETRY_PASSWORD"
 
-      - name: Extract changes from Git history
-        id: git-log
-        run: |
-          current_tag="${GITHUB_REF#refs/tags/}"
-          previous_tag=$(git describe --tags --abbrev=0 HEAD^ || echo "Initial Release")
-          changes=$(git log ${previous_tag}..${current_tag} --pretty=format:"- %s (%an)")
-          echo "changelog=$changes" >> $GITHUB_ENV
-
       - name: Create GitHub Release
         uses: actions/create-release@v1
         env:
@@ -55,7 +47,6 @@ jobs:
         with:
           tag_name: ${{ github.ref }}
           release_name: ${{ github.ref_name }}
-          body: ${{ env.changelog }}
           draft: false
           prerelease: false
 
