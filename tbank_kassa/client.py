@@ -2,8 +2,10 @@ from typing import TypeVar
 
 import requests
 from aiohttp import ClientSession
+from pydantic import ValidationError
 
 from . import enums
+from .logger import logger
 from .models.request.request import Request
 from .models.response.response import Response
 
@@ -28,9 +30,20 @@ class TBankKassaClient:
         data: bytes,
         response_model: type[RESPONSE],
     ) -> Response | RESPONSE:
-        base_response = Response.prepare(data)
-        if not base_response.success:
-            return base_response
+        try:
+            response = Response.prepare(data)
+        except ValidationError:
+            logger.exception('Cannot validate response.')
+            raise
+        if not response.success:
+            logger.warning(
+                'Response is unsuccessful. '
+                    '(code: "%s", message: "%s", details: "%s")',
+                response.error_code,
+                response.error_message,
+                response.error_details,
+            )
+            return response
         return response_model.prepare(data)
 
     async def apost(
@@ -45,6 +58,7 @@ class TBankKassaClient:
                 json=request.prepare(),
             ) as response,
         ):
+            logger.info('(async) POST %d "%s"', response.status, response.url)
             return self._bytes_to_response(
                 await response.read(),
                 response_model,
@@ -60,6 +74,7 @@ class TBankKassaClient:
             json=request.prepare(),
             timeout=10,
         )
+        logger.info('POST %d "%s"', response.status_code, response.url)
         return self._bytes_to_response(
             response.content,
             response_model,
