@@ -9,11 +9,11 @@ from pydantic import (
 )
 
 from . import enums
-from .item import Item
+from .item_ffd_105 import ItemFFD105
 
 
 class ReceiptFFD105(BaseModel):
-    items: list[Item] = Field(
+    items: list[ItemFFD105] = Field(
         serialization_alias='Items',
     )
     """

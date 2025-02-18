@@ -1,7 +1,11 @@
 from .request import (
+    DocumentCode,
     Init,
-    Item,
+    ItemFFD12,
+    ItemFFD105,
     Language,
+    MeasurementUnit,
+    PaymentObject,
     PaymentType,
     ReceiptFFD12,
     ReceiptFFD105,
@@ -11,9 +15,13 @@ from .request import (
 )
 
 __all__ = [
+    'DocumentCode',
     'Init',
-    'Item',
+    'ItemFFD12',
+    'ItemFFD105',
     'Language',
+    'MeasurementUnit',
+    'PaymentObject',
     'PaymentType',
     'ReceiptFFD12',
     'ReceiptFFD105',
