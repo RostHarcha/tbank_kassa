@@ -4,32 +4,26 @@ import requests
 from aiohttp import ClientSession
 from pydantic import ValidationError
 
-from . import enums
+from . import environment as env
 from .logger import logger
 from .models.request.request import Request
 from .models.response.response import Response
 
-RESPONSE = TypeVar('RESPONSE', bound=Response)
+R = TypeVar('R', bound=Response)
 
 
 class TBankKassaClient:
     def __init__(
         self,
-        environment: enums.TBankKassaEnvironment,
+        environment: env.TBankAPIEnvironment,
     ):
-        match environment:
-            case enums.TBankKassaEnvironment.TEST:
-                self._base_url = 'https://rest-api-test.tinkoff.ru/v2'
-            case enums.TBankKassaEnvironment.PROD:
-                self._base_url = 'https://securepay.tinkoff.ru/v2'
-            case _:
-                raise AttributeError()
+        self._env = environment
 
     def _bytes_to_response(
         self,
         data: bytes,
-        response_model: type[RESPONSE],
-    ) -> Response | RESPONSE:
+        response_model: type[R],
+    ) -> Response | R:
         try:
             response = Response.prepare(data)
         except ValidationError:
@@ -38,7 +32,7 @@ class TBankKassaClient:
         if not response.success:
             logger.warning(
                 'Response is unsuccessful. '
-                    '(code: "%s", message: "%s", details: "%s")',
+                '(code: "%s", message: "%s", details: "%s")',
                 response.error_code,
                 response.error_message,
                 response.error_details,
@@ -49,12 +43,12 @@ class TBankKassaClient:
     async def apost(
         self,
         request: Request,
-        response_model: type[RESPONSE],
-    ) -> Response | RESPONSE:
+        response_model: type[R],
+    ) -> Response | R:
         async with (
             ClientSession() as session,
             session.post(
-                url=request.get_url(self._base_url),
+                url=request.get_url(self._env.base_url),
                 json=request.prepare(),
             ) as response,
         ):
@@ -67,10 +61,10 @@ class TBankKassaClient:
     def post(
         self,
         request: Request,
-        response_model: type[RESPONSE],
-    ) -> Response | RESPONSE:
+        response_model: type[R],
+    ) -> Response | R:
         response = requests.post(
-            url=request.get_url(self._base_url),
+            url=request.get_url(self._env.base_url),
             json=request.prepare(),
             timeout=10,
         )

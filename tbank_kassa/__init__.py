@@ -1,14 +1,12 @@
 __version__ = '0.3.4'
 
-from . import types
-from . import models
+from . import environment, models, types
 from .api import TBankAPI
-from .enums import TBankKassaEnvironment as Environment
 from .logger import setup_logging
 
 __all__ = [
-    'Environment',
     'TBankAPI',
+    'environment',
     'models',
     'setup_logging',
     'types',

@@ -1,8 +1,8 @@
 import hashlib
 from typing import Any, Unpack
 
+from . import environment as env
 from .client import TBankKassaClient
-from .enums import TBankKassaEnvironment
 from .logger import logger
 from .models import dicts, request, response
 
@@ -12,7 +12,7 @@ class TBankAPI:
         self,
         terminal_key: str,
         password: str,
-        environment: TBankKassaEnvironment = TBankKassaEnvironment.PROD,
+        environment: env.TBankAPIEnvironment = env.PROD,
     ):
         self._client = TBankKassaClient(
             environment=environment,
@@ -20,11 +20,9 @@ class TBankAPI:
         self._terminal_key = terminal_key
         self._password = password
         logger.info(
-            'T-Bank API is ready now!'
-                '\n\tTerminal "%s".'
-                '\n\tEnvironment "%s".',
+            'T-Bank API is ready now!\n\tTerminal "%s".\n\tEnvironment "%s".',
             self._terminal_key,
-            environment.value,
+            environment.name,
         )
 
     def validate_webhook(self, data: dict[str, Any]) -> bool:

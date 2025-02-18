@@ -1,11 +1,11 @@
 import hashlib
 from typing import Any
 
-from pydantic import BaseModel, Field, PrivateAttr, HttpUrl
+from pydantic import BaseModel, Field, HttpUrl, PrivateAttr
 
 
 class Request(BaseModel):
-    _method: str = PrivateAttr(
+    _method: str | None = PrivateAttr(
         default=None,
     )
 
@@ -14,6 +14,8 @@ class Request(BaseModel):
 
     @property
     def method(self) -> str:
+        if self._method is None:
+            raise AttributeError()
         return self._method
 
     def prepare(self) -> dict[str, Any]:
@@ -54,7 +56,7 @@ class TokenRequest(Request):
                 by_alias=True,
                 exclude={'token'},
                 exclude_unset=True,
-                context = {
+                context={
                     'tbank_kassa_format': True,
                 },
             ),

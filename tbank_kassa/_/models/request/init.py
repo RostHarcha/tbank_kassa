@@ -14,6 +14,7 @@ class Init(TokenRequest):
     """
     Метод инициирует платежную сессию.
     """
+
     _method = 'Init'
 
     terminal_key: fields.TerminalKey = Field(
