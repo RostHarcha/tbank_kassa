@@ -11,7 +11,7 @@ from .. import fields
 from . import enums
 
 
-class Item(BaseModel):
+class ItemFFD105(BaseModel):
     name: str = Field(
         serialization_alias='Name',
         max_length=128,
