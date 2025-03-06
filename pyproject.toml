@@ -1,16 +1,33 @@
 [tool.poetry]
 name = "tbank-kassa"
-version = "0.3.4"
+version = "1.0.0"
 description = ""
 authors = ["Rostislaww <rostiki.com@mail.ru>"]
 homepage = "https://github.com/RostHarcha/tbank_kassa"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.12"
 pydantic = {extras = ["email"], version = "^2.10.6"}
-aiohttp = "^3.11.10"
 requests = "^2.32.3"
+pydantic-extra-types = "^2.10.2"
+phonenumbers = "^9.0.0"
 
+[tool.ruff]
+target-version = "py312"
+line-length = 75
+
+[tool.ruff.format]
+quote-style = "single"
+indent-style = "space"
+docstring-code-format = true
+
+[tool.ruff.lint.pyupgrade]
+keep-runtime-typing = true
+
+[tool.ruff.lint]
+fixable = [
+    "F401", # unused imports
+]
 
 [build-system]
 requires = ["poetry-core"]
