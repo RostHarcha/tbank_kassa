@@ -3,7 +3,14 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Annotated, ClassVar, Literal, Optional, Union
 
-from pydantic import ConfigDict, EmailStr, Field, HttpUrl, computed_field
+from pydantic import (
+    ConfigDict,
+    EmailStr,
+    Field,
+    HttpUrl,
+    computed_field,
+    model_validator,
+)
 
 from .. import enums, validators
 from . import fields
@@ -29,11 +36,6 @@ class TPay(BaseData):
     DeviceWebView: Optional[bool] = None
     DeviceBrowser: Optional[str] = None
     TinkoffPayWeb: Optional[bool] = None
-
-
-DataField = Annotated[
-    Union[dict, TPay, Common, LongPay], validators.validate_length(20)
-]
 
 
 class AgentData(BaseSchema):
@@ -102,9 +104,9 @@ class Item_FFD_12(BaseItem):
     DeclarationNumber: Optional[str] = Field(default=None, max_length=32)
     MeasurementUnit: fields.MeasurementUnit
     MarkProcessingMode: Optional[Literal['0']] = None
-    MarkCode: MarkCode
-    MarkQuantity: Optional[MarkQuantity]
-    SectoralItemProps: SectoralItemProps
+    MarkCode: Optional['MarkCode'] = None
+    MarkQuantity: Optional['MarkQuantity'] = None
+    SectoralItemProps: Optional['SectoralItemProps'] = None
 
 
 class Payments(BaseSchema):
@@ -129,11 +131,16 @@ class BaseReceipt(BaseSchema):
     Email: Optional[EmailStr] = Field(default=None, max_length=64)
     Phone: Optional[fields.PhoneNumberField] = None
     Payments: Optional['Payments'] = None
+    Items: list[BaseItem]
 
     @computed_field
     @property
     def FfdVersion(self) -> str:
         return self._ffd_version
+
+    @property
+    def Amount(self) -> int:
+        return sum(item.Amount for item in self.Items)
 
 
 class Receipt_FFD_105(BaseReceipt):
@@ -149,9 +156,6 @@ class Receipt_FFD_12(BaseReceipt):
     Items: list[Item_FFD_12]
 
 
-Receipt = Union[Receipt_FFD_105, Receipt_FFD_12]
-
-
 class Shop(BaseSchema):
     ShopCode: str
     Amount: int
@@ -162,7 +166,7 @@ class Shop(BaseSchema):
 class Init(BaseSchema):
     Password: str = Field(max_length=20, exclude=True)
     TerminalKey: str = Field(max_length=20)
-    Amount: int = Field(lt=10**10)
+    Amount: Optional[int] = Field(default=None, lt=10**10)
     OrderId: str = Field(max_length=36)
     Description: Optional[str] = Field(default=None, max_length=140)
     CustomerKey: Optional[str] = Field(default=None, max_length=36)
@@ -173,8 +177,12 @@ class Init(BaseSchema):
     SuccessURL: Optional[HttpUrl] = None
     FailURL: Optional[HttpUrl] = None
     RedirectDueDate: Optional[datetime] = None
-    DATA: Optional[DataField] = Field(default=None)
-    Receipt: Optional['Receipt'] = None
+    DATA: Optional[
+        Annotated[
+            Union[dict, TPay, Common, LongPay], validators.validate_length(20)
+        ]
+    ] = Field(default=None)
+    Receipt: Optional[Union[Receipt_FFD_105, Receipt_FFD_12]] = None
     Shops: Optional[list[Shop]] = None
     Descriptor: Optional[str] = None
 
@@ -193,3 +201,19 @@ class Init(BaseSchema):
         }
         token = ''.join(str(token_dict[key]) for key in sorted(token_dict))
         return hashlib.sha256(token.encode('utf-8')).hexdigest()
+
+    @model_validator(mode='after')
+    def check_amount(self):
+        if self.Amount is None and self.Receipt is None:
+            msg = 'One of `Amount` or `Receipt` is required.'
+            raise ValueError(msg)
+        if self.Receipt:
+            if not self.Receipt.Items and self.Amount is None:
+                msg = '`Receipt.Items` can not be empty if `Amount` is not specified.'
+                raise ValueError(msg)
+            if self.Receipt.Items:
+                self.Amount = self.Receipt.Amount
+            if self.Amount is not None and self.Amount != self.Receipt.Amount:
+                msg = '`self.Amount` must be equal to `self.Receipt.Amount`.'
+                raise ValueError(msg)
+        return self
