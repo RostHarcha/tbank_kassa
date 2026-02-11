@@ -24,6 +24,6 @@ class InitDict(TypedDict):
     fail_url: NotRequired[HttpUrl]
     time_to_live: NotRequired[datetime]
     extra: NotRequired[dict]
-    receipt: NotRequired[ReceiptFFD105 | ReceiptFFD12]
+    receipt: ReceiptFFD105 | ReceiptFFD12
     shops: NotRequired[list[Shop]]
     descriptor: NotRequired[str]
