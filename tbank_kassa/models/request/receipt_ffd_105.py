@@ -4,7 +4,6 @@ from pydantic import (
     BaseModel,
     EmailStr,
     Field,
-    ValidationError,
     model_validator,
 )
 
@@ -62,5 +61,5 @@ class ReceiptFFD105(BaseModel):
                 'At least one of the fields from `email` and `phone` '
                 'is required.'
             )
-            raise ValidationError(msg)
+            raise ValueError(msg)
         return self

@@ -3,7 +3,6 @@ from decimal import Decimal
 from pydantic import (
     BaseModel,
     Field,
-    ValidationError,
     model_validator,
 )
 
@@ -87,5 +86,5 @@ class ItemFFD12(BaseModel):
     def validate_amount(self):
         if self.amount != self.price * self.quantity:
             msg = '`amount` must be equal to `quantity * price`'
-            raise ValidationError(msg)
+            raise ValueError(msg)
         return self
