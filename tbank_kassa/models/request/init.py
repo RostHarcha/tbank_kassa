@@ -14,7 +14,6 @@ class Init(TokenRequest):
     """
     Метод инициирует платежную сессию.
     """
-
     _method = 'Init'
 
     terminal_key: fields.TerminalKey = Field(
@@ -211,8 +210,9 @@ class Init(TokenRequest):
     электронного кошелька, не должен превышать 30 символов.
     """
 
-    receipt: ReceiptFFD105 | ReceiptFFD12 = Field(
+    receipt: ReceiptFFD105 | ReceiptFFD12 | None = Field(
         serialization_alias='Receipt',
+        default=None,
     )
     """
     Данные чека. Обязателен, если подключена онлайн-касса.
