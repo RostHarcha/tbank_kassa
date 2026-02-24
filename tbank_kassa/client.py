@@ -1,10 +1,11 @@
 from typing import TypeVar
 
+import aiohttp
 import requests
-from aiohttp import ClientSession
-from pydantic import ValidationError
+from pydantic import HttpUrl, ValidationError
 
 from . import enums
+from .exceptions import ClientResponseError
 from .logger import logger
 from .models.request.request import Request
 from .models.response.response import Response
@@ -38,7 +39,7 @@ class TBankKassaClient:
         if not response.success:
             logger.warning(
                 'Response is unsuccessful. '
-                    '(code: "%s", message: "%s", details: "%s")',
+                '(code: "%s", message: "%s", details: "%s")',
                 response.error_code,
                 response.error_message,
                 response.error_details,
@@ -52,13 +53,23 @@ class TBankKassaClient:
         response_model: type[RESPONSE],
     ) -> Response | RESPONSE:
         async with (
-            ClientSession() as session,
+            aiohttp.ClientSession() as session,
             session.post(
-                url=request.get_url(self._base_url),
+                url=request.get_url(HttpUrl(self._base_url)),
                 json=request.prepare(),
             ) as response,
         ):
-            logger.info('(async) POST %d "%s"', response.status, response.url)
+            logger.info(
+                '(async) POST %d "%s"', response.status, response.url
+            )
+            try:
+                response.raise_for_status()
+            except aiohttp.ClientResponseError:
+                logger.exception('Response error')
+                raise ClientResponseError(
+                    status_code=response.status,
+                    content=await response.read(),
+                ) from None
             return self._bytes_to_response(
                 await response.read(),
                 response_model,
@@ -70,11 +81,19 @@ class TBankKassaClient:
         response_model: type[RESPONSE],
     ) -> Response | RESPONSE:
         response = requests.post(
-            url=request.get_url(self._base_url),
+            url=request.get_url(HttpUrl(self._base_url)),
             json=request.prepare(),
             timeout=10,
         )
         logger.info('POST %d "%s"', response.status_code, response.url)
+        try:
+            response.raise_for_status()
+        except requests.HTTPError as exc:
+            logger.exception('Response error')
+            raise ClientResponseError(
+                status_code=exc.response.status_code,
+                content=exc.response.content,
+            ) from None
         return self._bytes_to_response(
             response.content,
             response_model,
